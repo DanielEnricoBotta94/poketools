@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>10</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MainStreaming.Library.µFfmpeg" Version="1.0.165" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="sprites\back.png" />
+      <Content Include="sprites\back.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="sprites\front.png" />
+      <Content Include="sprites\front.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="sprites\pokemonnames.txt" />
+      <Content Include="sprites\pokemonnames.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
+</Project>
