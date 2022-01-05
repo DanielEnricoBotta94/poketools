@@ -2,53 +2,52 @@
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using MainStreaming.Library.µFfmpeg;
 using MainStreaming.Library.µFfmpeg.Builders;
-using MainStreaming.Library.µFfmpeg.Models.Interfaces;
 
-async Task GeneratePokemonSingleSprites(string[] pokemonNamesList, int maxPokeHor, int maxPokeVer,
-    FileInfo? pokemonSheet, int pokeWidth, int pokeHeight, IFfMpegProcess? ffMpegProcess)
-{
-    var directory = new DirectoryInfo("extracted");
-    directory.Create();
-    var k = 0;
-    for (var i = 0; i < maxPokeHor; i++)
-    {
-        for (var j = 0; j < maxPokeVer; j++, k++)
-        {
-
-            var ffmpeg_args = new FfMpegArguments()
-                .Header("-y")
-                .Input(pokemonSheet.FullName)
-                .FilterComplex($"crop=96:100:{j * pokeWidth}:{i * pokeHeight}[0];[0]hue=s=0[1]")
-                .Map("[1]")
-                .Output($@"{directory.FullName}\{pokemonNamesList[k].Replace("\r", "")}.png");
-
-            Console.WriteLine(ffmpeg_args.Build());
-            await ffMpegProcess.Execute(ffmpeg_args.Build(), CancellationToken.None);
-        }
-    }
-}
-
-const int max_poke_hor = 31;
-const int max_poke_ver = 21;
-const int poke_height = 100;
-const int poke_width = 96;
+const int maxPokeHor = 31;
+const int maxPokeVer = 21;
+const int pokeHeight = 100;
+const int pokeWidth = 96;
 
 var ffmpeg = MicroFfmpeg.Ffmpeg();
 
-var pokemon_sheet = new FileInfo("sprites/front.png");
-var poke_txt = new FileInfo("sprites/pokemonnames.txt");
-using var stream = new StreamReader(poke_txt.OpenRead());
-var pokemon_names_list = (await stream.ReadToEndAsync()).Split("\n");
+var pokemonSheet = new FileInfo("sprites/front.png");
+var pokeTxt = new FileInfo("sprites/pokemonnames.txt");
+var palette_source = new FileInfo("sprites/palette_source.png");
+using var stream = new StreamReader(pokeTxt.OpenRead());
+var pokemonNamesList = (await stream.ReadToEndAsync()).Split("\n").Select(s => s.Replace("\r", "")).ToArray();
 
-await GeneratePokemonSingleSprites(pokemon_names_list, max_poke_hor, max_poke_ver, pokemon_sheet, poke_width, poke_height, ffmpeg);
+var palette = new FileInfo("palette.png");
 
+var ffmpegArgs = new FfMpegArguments()
+    .Header("-y")
+    .Input(palette_source.FullName)
+    .VideoFilter(new []{("palettegen", new (string key, string value)[]
+    {
+        ("max_colors", "4"),
+        ("transparency_color", "white")
+    })})
+    .Output("palette.png");
 
-var pokesprites = new DirectoryInfo("extracted")
-    .GetFiles()
-    .Where(w => Path.GetExtension(w.FullName).Equals(".png", StringComparison.InvariantCultureIgnoreCase))
-    .ToArray();
+Console.WriteLine(ffmpegArgs.Build());
+await ffmpeg.Execute(ffmpegArgs.Build(), CancellationToken.None);
+var directory = new DirectoryInfo("extracted");
+directory.Create();
+var k = 0;
+for (var i = 0; i < maxPokeVer; i++)
+for (var j = 0; j < maxPokeHor; j++, k++)
+{
+    var old = new FileInfo($"sprites/old/front/{pokemonNamesList[k]}.png");
+    var probe = await MainStreaming.Library.µFfmpeg.Commons.Convert.GetFastInfo(old, CancellationToken.None);
+    ffmpegArgs = new FfMpegArguments()
+        .Header("-y")
+        .Input(pokemonSheet.FullName)
+        .Input(palette.FullName)
+        .FilterComplex($"crop=96:100:{j * pokeWidth}:{i * pokeHeight}[0];[0]hue=s=0[1];[1]paletteuse[2];[2]crop=w={probe.Streams.First().Width}:h={probe.Streams.First().Height}[3]")
+        .Map("[3]")
+        .Output($@"{directory.FullName}\{pokemonNamesList[k]}.png");
 
-Console.WriteLine("hi");
+    Console.WriteLine(ffmpegArgs.Build());
+    await ffmpeg.Execute(ffmpegArgs.Build(), CancellationToken.None);
+}
