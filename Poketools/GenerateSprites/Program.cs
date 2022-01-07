@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading;
+using ImageMagick;
 using MainStreaming.Library.µFfmpeg;
 using MainStreaming.Library.µFfmpeg.Builders;
 
@@ -30,8 +31,8 @@ var ffmpegArgs = new FfMpegArguments()
     })})
     .Output("palette.png");
 
-Console.WriteLine(ffmpegArgs.Build());
-await ffmpeg.Execute(ffmpegArgs.Build(), CancellationToken.None);
+//Console.WriteLine(ffmpegArgs.Build());
+//await ffmpeg.Execute(ffmpegArgs.Build(), CancellationToken.None);
 var directory = new DirectoryInfo("extracted");
 directory.Create();
 var k = 0;
@@ -39,15 +40,28 @@ for (var i = 0; i < maxPokeVer; i++)
 for (var j = 0; j < maxPokeHor; j++, k++)
 {
     var old = new FileInfo($"sprites/old/front/{pokemonNamesList[k]}.png");
+    var magick = new MagickImage(old.FullName);
+   // var (top, bottom, left, right) = GetDistanceBetweenBorderAndSprite(magick);
+    
     var probe = await MainStreaming.Library.µFfmpeg.Commons.Convert.GetFastInfo(old, CancellationToken.None);
     ffmpegArgs = new FfMpegArguments()
         .Header("-y")
         .Input(pokemonSheet.FullName)
-        .Input(palette.FullName)
-        .FilterComplex($"crop=96:100:{j * pokeWidth}:{i * pokeHeight}[0];[0]hue=s=0[1];[1]paletteuse[2];[2]crop=w={probe.Streams.First().Width}:h={probe.Streams.First().Height}[3]")
-        .Map("[3]")
+      //  .Input(palette.FullName)
+        .Option("-frames:v 1")
+        .FilterComplex($"color=white,format=rgb24[c];[c][0]scale2ref[c][i];[c][i]overlay[S];[S]crop=96:100:{j * pokeWidth}:{i * pokeHeight}[1];[1]hue=s=0[2];[2]paletteuse[3];[3]crop=w={probe.Streams.First().Width}:h={probe.Streams.First().Height}[4]")
+        .Map("[4]")
         .Output($@"{directory.FullName}\{pokemonNamesList[k]}.png");
 
     Console.WriteLine(ffmpegArgs.Build());
     await ffmpeg.Execute(ffmpegArgs.Build(), CancellationToken.None);
+}
+
+(int top, int bottom, int left, int right) GetDistanceBetweenBorderAndSprite(MagickImage image)
+{
+    var pixels = image.GetPixels()
+    for (var i = 0; i < image.Width; i++)
+    {
+        image
+    }
 }
