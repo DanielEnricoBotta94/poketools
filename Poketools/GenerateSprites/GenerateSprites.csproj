@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>10</LangVersion>
@@ -10,7 +10,6 @@
 
     <ItemGroup>
       <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="8.5.0" />
-      <PackageReference Include="MainStreaming.Library.µFfmpeg" Version="1.0.165" />
     </ItemGroup>
 
     <ItemGroup>
@@ -938,6 +937,10 @@
       <None Update="sprites\old\front\zubat.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\mstest\MainStreaming.Library\src\MainStreaming.Library.µFfmpeg\MainStreaming.Library.µFfmpeg.csproj" />
     </ItemGroup>
 
 </Project>

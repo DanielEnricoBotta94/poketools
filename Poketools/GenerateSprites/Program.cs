@@ -31,8 +31,7 @@ var ffmpegArgs = new FfMpegArguments()
     })})
     .Output("palette.png");
 
-//Console.WriteLine(ffmpegArgs.Build());
-//await ffmpeg.Execute(ffmpegArgs.Build(), CancellationToken.None);
+await ffmpeg.Execute(ffmpegArgs.Build(), CancellationToken.None);
 var directory = new DirectoryInfo("extracted");
 directory.Create();
 var k = 0;
@@ -47,7 +46,7 @@ for (var j = 0; j < maxPokeHor; j++, k++)
     ffmpegArgs = new FfMpegArguments()
         .Header("-y")
         .Input(pokemonSheet.FullName)
-      //  .Input(palette.FullName)
+        .Input(palette.FullName)
         .Option("-frames:v 1")
         .FilterComplex($"color=white,format=rgb24[c];[c][0]scale2ref[c][i];[c][i]overlay[S];[S]crop=96:100:{j * pokeWidth}:{i * pokeHeight}[1];[1]hue=s=0[2];[2]paletteuse[3];[3]crop=w={probe.Streams.First().Width}:h={probe.Streams.First().Height}[4]")
         .Map("[4]")
@@ -57,11 +56,12 @@ for (var j = 0; j < maxPokeHor; j++, k++)
     await ffmpeg.Execute(ffmpegArgs.Build(), CancellationToken.None);
 }
 
-(int top, int bottom, int left, int right) GetDistanceBetweenBorderAndSprite(MagickImage image)
-{
-    var pixels = image.GetPixels()
-    for (var i = 0; i < image.Width; i++)
-    {
-        image
-    }
-}
+return;
+//(int top, int bottom, int left, int right) GetDistanceBetweenBorderAndSprite(MagickImage image)
+//{
+//    var pixels = image.GetPixels()
+//    for (var i = 0; i < image.Width; i++)
+//    {
+//      //  image
+//    }
+//}
